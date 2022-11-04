@@ -1,18 +1,47 @@
 ---
 title: "P8105_hw5"
-output: html_document
+output: github_document
 date: "2022-11-04"
 ---
+# libraries
+```{r echo=FALSE}
+library(tidyverse)
+library(ggplot2)
+```
 
-```{r}
- 
+# Problem 1
+## Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time
+```{r warning=FALSE, message=FALSE}
+file_df <- tibble(
+  files = list.files("./data")) %>%
+  mutate(files = str_c("data", files, sep = "/"))
+
+results <- file_df %>%
+  mutate(results = map(files, read_csv)) %>%
+  mutate(arm = ifelse(str_detect(files, "exp"), "Experiment", "Control"),
+         ID = as.factor(parse_number(files))) %>%
+  unnest(results) %>%
+  pivot_longer(week_1:week_8,
+               names_to = "week",
+               values_to = "observation")%>%
+  mutate(week = as.numeric(parse_number(week))) 
+
+
+
 ```
 
  
-
+Make a spaghetti plot showing observations on each subject over time
 ```{r}
- 
+results %>%
+  ggplot(aes(x = week, y = observation,color = ID)) + geom_line() +
+  ylab("Observations") +
+  xlab("Weeks") +
+  facet_grid(cols = vars(arm)) +
+  ggtitle("Observations Over time by Arm")
 ```
+
+The Charts shows that the observations over time by study arm. In the control arm, we cannnot say there is a relationship between participants' observation and time. However,in the experiment arm, participants appear to be reporting higher observations as time goes on.
 
  
 
