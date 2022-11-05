@@ -200,7 +200,7 @@ plot2 <- sim_results %>%
   )
 plot1 + plot2
 ```
-The sample average for which the null is rejected approximately equal to the true value of mu when effect power of the test is large, when power is small, true mu is not equal to average mu_hat. 
+The sample average for which the null is rejected approximately equal to the true value of mu when effect power of the test is large, when power is small, true mu is always smaller than average estimate. 
 
 
 
