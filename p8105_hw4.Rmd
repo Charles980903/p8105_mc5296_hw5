@@ -4,7 +4,7 @@ output: github_document
 date: "2022-11-04"
 ---
 # libraries
-```{r echo=FALSE}
+```{r include=FALSE}
 library(tidyverse)
 library(ggplot2)
 ```
@@ -44,9 +44,81 @@ results %>%
 The Charts shows that the observations over time by study arm. In the control arm, we cannnot say there is a relationship between participants' observation and time. However,in the experiment arm, participants appear to be reporting higher observations as time goes on.
 
  
+# Problem 2
+## read data from website
+```{r, warning=FALSE, message=FALSE}
+url <- 'https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv'
+homicides_df <- read_csv(url(url), na = c(" ", "Unknown"))
+skimr::skim(homicides_df)
+```
 
+The homicide data set contains 52,179 observations across 12 columns. Variables in the data set include unique id,  victim's last name, victim's first name, victim's race, victim's age, victim's sex, city, state, latitude, longitude, reported date of murder and disposition of the case.
+
+
+## Create city_state variable and summarize within cities to obtain the total number of homicides and the number of unsolved homicides
 ```{r}
+# create  new variables
+homicides_df <- homicides_df %>% 
+  mutate(city_state = str_c(city, state, sep = ", "),
+         whether_solved = ifelse(
+           disposition %in% c("Closed without arrest", "Open/No arrest"), "unsolved", "solved"))
  
 ```
+
+## Filter to Baltimore
+```{r}
+baltimore <- homicides_df %>%
+  filter(city_state == "Baltimore, MD")
+
+
+unsolved_baltimore_summary <- baltimore %>%
+  summarize(
+    unsolved = sum(whether_solved == "unsolved"),
+    n=n()
+  )
+
+test <-prop.test(
+  x = unsolved_baltimore_summary %>% pull(unsolved),
+  n = unsolved_baltimore_summary %>% pull(n)
+)
+
+test %>%
+  broom::tidy()%>%
+  knitr::kable()
+```
+## run prop.test in other cities
+```{r warning=FALSE}
+# table for each city
+city_df <- homicides_df %>%
+  group_by(city_state) %>%
+  summarise(
+    unsolved = sum(whether_solved == "unsolved"),
+    n = n()) 
+
+results_df = 
+  city_df %>% 
+  mutate(
+    prop_tests = map2(.x = unsolved, .y = n, ~prop.test(x = .x, n = .y)),
+    tidy_tests = map(.x = prop_tests, ~broom::tidy(.x))
+  ) %>% 
+  select(-prop_tests) %>% 
+  unnest(tidy_tests) %>% 
+  select(city_state, estimate, conf.low,conf.high) 
+  
+results_df %>%
+  knitr::kable()
+```
+## Create a plot that shows the estimates and CIs for each city 
+```{r}
+results_df %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+We can see the data of Tulsa is abnormal.
+
 
  
