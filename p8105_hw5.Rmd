@@ -200,7 +200,7 @@ plot2 <- sim_results %>%
 plot1 + plot2
 ```
 
-The sample average for which the null is rejected is approximately equal to the true value of mu when effect power of the test is large, when power is small, true mu is always smaller than average estimate. This is because the power of test increases with the increase in effect size. So the average estimate of mu_hat that reject the null will become closer to true mu as the effect size increases.
+The sample average for which the null is rejected is approximately equal to the true value of mu when effect power of the test is large, when power is small, true mu is always smaller than average estimate. This is because the power of test increases with the increase in effect size and it becomes more likely to reject the null. So the average estimate of mu that reject the null will become closer to average estimate of mu.
 
 
 
